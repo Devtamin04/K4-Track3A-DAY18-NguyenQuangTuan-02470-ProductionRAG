@@ -38,11 +38,11 @@ def main():
     test_set = load_test_set()
     questions, answers, all_contexts, ground_truths = [], [], [], []
 
-    from config import OPENAI_API_KEY
+    from config import OPENAI_API_KEY, OPENAI_BASE_URL, LLM_MODEL, LLM_MAX_TOKENS
     llm_client = None
     if OPENAI_API_KEY:
         from openai import OpenAI
-        llm_client = OpenAI()
+        llm_client = OpenAI(base_url=OPENAI_BASE_URL)
 
     for i, item in enumerate(test_set):
         results = search.search(item["question"], top_k=3, collection=NAIVE_COLLECTION)
@@ -51,7 +51,7 @@ def main():
         if llm_client and contexts:
             try:
                 context_str = "\n\n".join(contexts)
-                resp = llm_client.chat.completions.create(model="gpt-4o-mini", messages=[
+                resp = llm_client.chat.completions.create(model=LLM_MODEL, temperature=0, max_tokens=LLM_MAX_TOKENS, messages=[
                     {"role": "system", "content": "Trả lời CHỈ dựa trên context. Nếu không có → nói 'Không tìm thấy.'"},
                     {"role": "user", "content": f"Context:\n{context_str}\n\nCâu hỏi: {item['question']}"},
                 ])
